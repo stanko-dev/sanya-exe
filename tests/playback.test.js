@@ -77,9 +77,9 @@ test('Autoplay policy, single menu stream, video fallback and cleanup', async t 
     const { attachRewardVideo, availableRewardVideos } = await server.ssrLoadModule('/src/lib/rewardVideo.js');
     await t.test('MP4 paths for all levels; original MOV fallback is discovered without renaming', () => {
       assert.equal(availableRewardVideos(levels[0])[0].path, 'lvl1/win1.mov');
-      assert.deepEqual(availableRewardVideos(levels[1]), []);
+      assert.deepEqual(availableRewardVideos(levels[1]), [{ path: 'lvl2/win2.mp4', type: 'video/mp4' }]);
       assert.deepEqual(availableRewardVideos(levels[2]), []);
-      assert.equal(attachRewardVideo(scene(), levels[1]), null);
+      assert.equal(attachRewardVideo(scene(), levels[2]), null);
     });
     await t.test('Video autoplay, Play/Pause, Replay, volume and shutdown cleanup', async () => {
       // The fake panel uses a native-media stand-in for its <video> node.
@@ -88,10 +88,11 @@ test('Autoplay policy, single menu stream, video fallback and cleanup', async t 
         const node = oldCreate(tag); if (tag === 'section') node.nodes.video = new FakeMedia(); return node;
       };
       try {
-        const s = scene(), video = attachRewardVideo(s, levels[0]); await flush();
+        for (const index of [0, 1]) {
+        const s = scene(), video = attachRewardVideo(s, levels[index], { minimal: true }); await flush();
         const panel = layout.querySelector('.polaroid').next;
         assert.equal(video.playCount, 1); assert.equal(video.volume, 0.65);
-        assert.equal(video.children[0].src, '/sanya-exe/media/lvl1/win1.mov');
+        assert.equal(video.children[0].src, index === 0 ? '/sanya-exe/media/lvl1/win1.mov' : '/sanya-exe/media/lvl2/win2.mp4');
         assert.equal(video.children[0].type, 'video/mp4');
         click(panel.querySelector('#video-play')); assert.ok(video.paused);
         video.currentTime = 10; click(panel.querySelector('#video-replay')); await flush();
@@ -101,6 +102,7 @@ test('Autoplay policy, single menu stream, video fallback and cleanup', async t 
         assert.equal(s.sound.volume, 0.25);
         s.events.emit('shutdown'); assert.ok(video.paused && video.loaded && panel.removed);
         assert.equal(video.children.length, 0); assert.equal(s.sound.listenerCount('volume'), 0);
+        }
       } finally { document.createElement = oldCreate; }
     });
   } finally { globalThis.document = oldDocument; globalThis.Audio = oldAudio; await server.close(); }

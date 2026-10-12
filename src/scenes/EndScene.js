@@ -26,8 +26,11 @@ export class EndScene extends Phaser.Scene {
     } else if (menuPlaybackIntent.canAutoplay()) music(this, menuMedia.soundtrack);
     else this.sound.stopAll();
     if (this.won) {
+      const stage = document.getElementById('stage');
+      stage.classList.add('final-stage');
+      this.events.once('shutdown', () => stage.classList.remove('final-stage'));
       const mainPhoto = mediaExists('final/main.jpg') ? `<img class="final-main-photo" src="${mediaUrl('final/main.jpg')}" alt="НАФОР">` : '';
-      mount(this, `<div class="final-fall" aria-hidden="true"></div><section class="end-screen final-screen"><div class="final-panel"><span class="eyebrow">${memeContent.final.title}</span><h2>${memeContent.final.greeting}</h2>${mainPhoto}<p class="final-completed">${memeContent.ui.completed}</p><div class="friends-slot"><p class="final-friends"></p></div><button id="restart" class="primary">${memeContent.ui.restart}</button><button id="menu" class="text-button">В МЕНЮ</button></div></section>`);
+      mount(this, `<div class="final-fall" aria-hidden="true"></div><section class="end-screen final-screen" aria-label="Фінальне привітання" tabindex="0"><header class="final-heading"><span class="eyebrow">${memeContent.final.title}</span><h2>${memeContent.final.greeting}</h2></header><figure class="final-portrait">${mainPhoto}<figcaption class="final-completed">${memeContent.ui.completed}</figcaption></figure><div class="friends-slot"><p class="final-friends"></p></div><nav class="final-actions" aria-label="Дії після фіналу"><button id="restart" class="primary">${memeContent.ui.restart}</button><button id="menu" class="text-button">В МЕНЮ</button></nav></section>`);
       attachFinalCelebration(this);
     } else {
       mount(this, `<section class="end-screen defeat-screen"><div class="end-symbol">↻</div><span class="eyebrow">ПОШЛА ВОЗНЯ</span><h2>${memeContent.ui.defeat}</h2><p>${personal ? escapeHtml(this.trap.message) : 'ПЕТРОВИЧ ЧЕКАЄ. БАБАНА НЕ ЗАКІНЧИЛАСЬ.'}</p><button id="restart" class="primary">${memeContent.ui.restart} <span class="button-arrow">↗</span></button><button id="menu" class="text-button">В МЕНЮ</button></section>`);

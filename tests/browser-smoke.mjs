@@ -102,6 +102,35 @@ try {
   await evaluate(`document.querySelector('#restart').click()`, true);
   await poll(() => evaluate(`sanyaGame.scene.isActive('Game') && sanyaGame.scene.getScene('Game').hp===100`), 'personal trap Restart');
   assert.equal(await evaluate(`sanyaGame.sound.sounds.filter(s=>s.key.endsWith('.ogg')&&s.isPlaying).length`), 0);
+  await evaluate(`sanyaGame.scene.getScene('Game').scene.start('Reward',{levelIndex:1,seconds:1,accuracy:100})`);
+  await poll(() => evaluate(`Boolean(document.querySelector('.reward-video video'))`), 'level 2 video');
+  assert.equal(await evaluate(`document.querySelector('video source').src.endsWith('/media/lvl2/win2.mp4')`), true);
+  await evaluate(`document.querySelector('#next').click()`, true);
+  await poll(() => evaluate(`sanyaGame.scene.isActive('Game') && sanyaGame.scene.getScene('Game').levelIndex===2`), 'level 2 reward goes to level 3');
+  await evaluate(`sanyaGame.scene.getScene('Game').scene.start('End',{won:true})`);
+  await poll(() => evaluate(`Boolean(document.querySelector('.final-main-photo')?.complete)`), 'final photo');
+  for (const [width, height] of [[1920,1080],[1366,768],[390,844]]) {
+    await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 600 });
+    await sleep(350);
+    const layout = await evaluate(`(()=>{
+      const screen=document.querySelector('.final-screen'), text=document.querySelector('.final-friends');
+      const image=document.querySelector('.final-main-photo'), layer=document.querySelector('.final-fall');
+      const blocks=[...screen.children].map(node=>{const r=node.getBoundingClientRect();return {left:r.left,right:r.right}});
+      const r=screen.getBoundingClientRect();
+      screen.scrollTop=screen.scrollHeight;
+      const button=document.querySelector('#menu').getBoundingClientRect();
+      return {visible:getComputedStyle(text).opacity==='1'&&getComputedStyle(text).color==='rgb(255, 255, 255)',
+        animations:text.getAnimations().length,contain:getComputedStyle(image).objectFit==='contain',
+        clicks:getComputedStyle(layer).pointerEvents==='none',horizontal:blocks.every(b=>b.left>=r.left&&b.right<=r.right),
+        buttons:button.top>=r.top&&button.bottom<=r.bottom,scroll:screen.scrollHeight>=screen.clientHeight};
+    })()`);
+    assert.deepEqual(layout, {visible:true,animations:0,contain:true,clicks:true,horizontal:true,buttons:true,scroll:true});
+    await evaluate(`document.querySelector('.final-screen').scrollTop=0`);
+    const shot=await send('Page.captureScreenshot',{format:'png'});
+    await writeFile(`test-results/final-${width}x${height}.png`,Buffer.from(shot.data,'base64'));
+  }
+  await evaluate(`document.querySelector('#menu').click()`, true);
+  await poll(() => evaluate(`sanyaGame.scene.isActive('Menu') && !document.querySelector('#stage').classList.contains('final-stage')`), 'final cleanup');
   assert.deepEqual(responses, []); assert.deepEqual(errors, []);
   console.log('Browser smoke passed: JPG heads, Opus decode/playback, audio cooldown, menu controls/cleanup, counts/hitboxes, traps, defeat fallback and Restart.');
 } finally {

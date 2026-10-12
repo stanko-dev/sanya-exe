@@ -34,6 +34,7 @@ test('Final manifest accepts all photo names and excludes the central main image
 
 test('Rewards keep exact content and future level media configuration', () => {
   assert.equal(memeContent.rewards[0], 'пр з дн. будь здоров. миронівна. (від ілюхи)');
+  assert.equal(memeContent.rewards[1], 'з днюхою ура, шоб хуй стояв і серце билось. бичий цепень vs гангерена (від стаса)');
   assert.deepEqual(levels.map(level => level.rewardTitle), memeContent.rewards);
   for (const level of levels) {
     assert.ok(level.rewardVideos.some(video => video.path === `lvl${level.id}/win${level.id}.mp4`));
@@ -49,7 +50,7 @@ test('Every final photo appears once and stays; reduced motion and exit clean re
     constructor() { this.style = {}; this.children = []; this.clientHeight = 800; this.classList = { toggle() {} }; elements.push(this); }
     append(node) { this.children.push(node); }
     remove() { this.removed = true; }
-    animate() { const animation = { cancel() { this.cancelled = true; } }; animations.push(animation); return animation; }
+    animate() { const animation = { target: this, cancel() { this.cancelled = true; } }; animations.push(animation); return animation; }
   }
   const layer = new Node(), credit = new Node();
   const motion = { matches: false, addEventListener: (_, fn) => listeners.add(fn), removeEventListener: (_, fn) => listeners.delete(fn) };
@@ -65,6 +66,8 @@ test('Every final photo appears once and stays; reduced motion and exit clean re
     } } };
     attachFinalCelebration(scene);
     assert.equal(credit.textContent, memeContent.final.friends);
+    assert.equal(timers.length, 1, 'Only falling photos have a timer; greetings stay static');
+    assert.ok(animations.every(animation => animation.target !== credit));
     for (let i = 0; i < 60; i++) timers[0].callback();
     const pile = layer.children.filter(node => !node.removed);
     assert.equal(pile.length, photos.length || finalLimits.maxCards);
@@ -76,6 +79,7 @@ test('Every final photo appears once and stays; reduced motion and exit clean re
     }
     motion.matches = true; for (const listener of listeners) listener();
     assert.ok(timers.every(timer => timer.removed));
+    assert.equal(credit.textContent, memeContent.final.friends);
     assert.ok(animations.every(animation => animation.cancelled));
     assert.equal(layer.children.filter(node => !node.removed).length, photos.length || 8);
     events.emit('shutdown');
