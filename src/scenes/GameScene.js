@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { levels, playerConfig as cfg } from '../config/levels.js';
+import { MemeTextManager } from '../lib/MemeTextManager.js';
+import { levels, playerConfig as cfg, enemyVisualConfig as visual } from '../config/levels.js';
 import { school, confetti } from '../lib/art.js';
 import { makeGrid, findPath } from '../lib/navigation.js';
 import { music, playSound, playHitSound } from '../lib/media.js';
@@ -16,6 +17,7 @@ export class GameScene extends Phaser.Scene {
     this.combatTime = 0;
     this.startedAt = this.time.now; this.shots = 0; this.hits = 0;
     this.kills = 0;
+    this.memeTexts = new MemeTextManager(this);
     this.total = this.level.enemies.reduce((sum, type) => sum + type.count, 0);
     school(this, this.level.obstacles);
     music(this, this.level.soundtrack);
@@ -42,18 +44,19 @@ export class GameScene extends Phaser.Scene {
     this.player.body.setCircle(17, 15, 15);
     this.enemies = this.physics.add.group();
     this.bullets = this.physics.add.group({ maxSize: 90 });
-    this.healthBars = this.add.graphics().setDepth(1500);
+    this.healthBars = this.add.graphics().setDepth(2200);
     let serial = 0;
     this.level.enemies.forEach(type => {
       for (let i = 0; i < type.count; i++) {
         const pos = this.spawnPosition(serial++);
         const hasPhoto = this.textures.exists(type.media.face);
         const texture = hasPhoto ? `enemy-body-${type.id}` : `enemy-${type.id}`;
-        const enemy = this.enemies.create(pos.x, pos.y, texture).setDisplaySize(46, 46).setCollideWorldBounds(true);
-        enemy.body.setSize(30 / enemy.scaleX, 30 / enemy.scaleY, true);
+        const enemy = this.enemies.create(pos.x, pos.y, texture).setDisplaySize(visual.bodySize, visual.bodySize).setCollideWorldBounds(true);
+        enemy.body.setSize(visual.hitboxSize / enemy.scaleX, visual.hitboxSize / enemy.scaleY, true);
+        enemy.body.updateFromGameObject();
         if (hasPhoto) {
           enemy.head = this.add.image(pos.x, pos.y, type.media.face);
-          enemy.head.setScale(Math.min(22 / enemy.head.width, 24 / enemy.head.height));
+          enemy.head.setScale(Math.min(visual.headWidth / enemy.head.width, visual.headHeight / enemy.head.height));
           enemy.once('destroy', () => enemy.head?.destroy());
         }
         enemy.stats = type; enemy.hp = type.hp; enemy.nextAttack = 0;
@@ -64,8 +67,8 @@ export class GameScene extends Phaser.Scene {
     const syncHeads = () => this.enemies.getChildren().forEach(enemy => {
       if (!enemy.head) return;
       const a = enemy.rotation;
-      enemy.head.setPosition(enemy.x + Math.sin(a) * 7, enemy.y - Math.cos(a) * 7)
-        .setRotation(a).setDepth(enemy.depth + 0.1);
+      enemy.head.setPosition(enemy.x + Math.sin(a) * visual.headOffset, enemy.y - Math.cos(a) * visual.headOffset)
+        .setRotation(a).setDepth(1000 + enemy.depth);
     });
     this.events.on('postupdate', syncHeads);
     this.events.once('shutdown', () => this.events.off('postupdate', syncHeads));
@@ -121,8 +124,7 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(80, () => { if (enemy.active) enemy.clearTint(); });
     if (enemy.hp <= 0) {
       confetti(this, enemy.x, enemy.y, 18);
-      const label = this.add.text(enemy.x, enemy.y - 20, 'НА ПЕРЕРВУ!', { fontFamily: 'monospace', fontSize: '12px', color: '#c9ff64', backgroundColor: '#151b23', padding: { x: 6, y: 4 } }).setOrigin(0.5).setDepth(2500);
-      this.tweens.add({ targets: label, y: label.y - 38, alpha: 0, duration: 700, onComplete: () => label.destroy() });
+      this.memeTexts.defeated(enemy.x, enemy.y);
       enemy.destroy(); this.kills++;
       document.getElementById('counter').textContent = `${this.kills} / ${this.total}`;
       if (this.kills === this.total) this.openExit();
@@ -238,8 +240,8 @@ export class GameScene extends Phaser.Scene {
       } else enemy.setVelocity(0, 0);
       enemy.setDepth(enemy.y);
       if (enemy.hp < enemy.stats.hp) {
-        this.healthBars.fillStyle(0x11161f).fillRoundedRect(enemy.x - 21, enemy.y - 33, 42, 5, 2);
-        this.healthBars.fillStyle(enemy.stats.color).fillRoundedRect(enemy.x - 21, enemy.y - 33, 42 * enemy.hp / enemy.stats.hp, 5, 2);
+        this.healthBars.fillStyle(0x11161f).fillRoundedRect(enemy.x - 24, enemy.y - 84, 48, 5, 2);
+        this.healthBars.fillStyle(enemy.stats.color).fillRoundedRect(enemy.x - 24, enemy.y - 84, 48 * enemy.hp / enemy.stats.hp, 5, 2);
       }
     });
   }

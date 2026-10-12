@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { levels, enemyTypes, playerConfig } from '../src/config/levels.js';
+import { levels, enemyTypes, playerConfig, enemyVisualConfig } from '../src/config/levels.js';
 import { makeGrid, findPath, CELL } from '../src/lib/navigation.js';
 
 for (const level of levels) {
@@ -34,6 +34,12 @@ for (const level of levels) {
 test('Player balance stays at the requested values', () => {
   assert.equal(playerConfig.hp, 100); assert.equal(playerConfig.speed, 270);
   assert.equal(playerConfig.damage, 30); assert.equal(playerConfig.fireDelay, 190);
+});
+test('Large enemy graphics keep fixed 30px hitboxes and reserve UI space', () => {
+  assert.equal(enemyVisualConfig.bodySize, 80);
+  assert.ok(enemyVisualConfig.headWidth >= 70 && enemyVisualConfig.headHeight <= 80);
+  assert.equal(enemyVisualConfig.hitboxSize, 30);
+  for (const level of levels) assert.equal(level.rewardVideos[0].path, `lvl${level.id}/win${level.id}.mp4`);
 });
 test('Traps are optional, uniquely named and away from solids, spawn, exit and center passages', () => {
   const ids = new Set();

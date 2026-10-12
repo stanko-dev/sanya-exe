@@ -32,7 +32,7 @@ export function createTextures(scene) {
   make('spark', 8, 8, g => g.fillStyle(0xffffff).fillRect(0, 0, 8, 8));
 }
 
-export function school(scene, obstacles = [], { menu = false } = {}) {
+export function school(scene, obstacles = [], { menu = false, animate = true } = {}) {
   const g = scene.add.graphics();
   g.fillStyle(0x171e28).fillRect(0, 0, 1280, 800);
   g.fillStyle(0x29333c).fillRect(76, 96, 1128, 650);
@@ -70,7 +70,7 @@ export function school(scene, obstacles = [], { menu = false } = {}) {
     for (let i = 0; i < 16; i++) {
       const x = 690 + (i * 97) % 440, y = 230 + (i * 131) % 420;
       const piece = scene.add.rectangle(x, y, 4, 11, [0xc9ff64, 0xad9aff, 0xffa770][i % 3]).setAngle(i * 31).setAlpha(0.65);
-      scene.tweens.add({ targets: piece, y: y - 35, angle: i * 31 + 70, alpha: 0.2, duration: 2200 + i * 110, yoyo: true, repeat: -1 });
+      if (animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) scene.tweens.add({ targets: piece, y: y - 35, angle: i * 31 + 70, alpha: 0.2, duration: 2200 + i * 110, yoyo: true, repeat: -1 });
     }
     scene.add.image(910, 432, 'player').setScale(3.4).setAngle(-15);
     scene.add.image(783, 298, 'enemy-1').setScale(1.7).setAngle(15);

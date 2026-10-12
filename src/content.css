@@ -1,0 +1,23 @@
+#ui .menu h1{font-size:6.1cqw;letter-spacing:-.3cqw;text-transform:none;min-height:6.5cqw;max-width:100%;color:#c9ff64}
+#ui .menu .primary,#ui .menu .secondary{font-size:1.15cqw;max-width:36cqw}
+.edition{max-width:31cqw}.edition strong{font-size:1.7cqw}
+.reward-minimal .polaroid.missing-reward{display:block;width:22cqw;padding:.7cqw}
+.reward-minimal .missing-reward .photo-placeholder{height:20cqw}
+.reward-copy h2{font-size:2.8cqw;line-height:1.25;letter-spacing:-.08cqw;overflow-wrap:anywhere}
+.polaroid img{object-fit:contain;background:#10151c}
+.defeat-screen h2{max-width:85%;font-size:4cqw;line-height:1.18;letter-spacing:-.1cqw}
+.final-fall{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.final-card{position:absolute;width:12cqw;min-height:9cqw;padding:.6cqw;background:#ffb76e;color:#172018;border:.35cqw solid #f4f0d4;box-shadow:0 4px 15px #0008;font-weight:900;font-size:1.4cqw;text-align:center;overflow-wrap:anywhere}
+.final-card:nth-child(3n){background:#ad9aff}.final-card:nth-child(3n+1){background:#c9ff64}
+.final-card img{display:block;width:100%;height:12cqw;object-fit:contain;background:#111820}
+.final-screen{z-index:2;padding:2cqw;justify-content:flex-start;pointer-events:none}
+.final-panel{width:72%;margin:0 auto;padding:1.2cqw 2cqw;background:#111820e8;border:1px solid #c9ff6470;border-radius:12px;box-shadow:0 10px 40px #0007}
+.final-main-photo{display:block;width:26cqw;height:16cqw;object-fit:contain;margin:0 auto 1cqw;border-radius:6px;background:#090d14}
+.final-panel>.eyebrow{justify-content:center;color:#c9ff64;font-size:1.3cqw}
+.final-screen h2{font-size:4.5cqw;letter-spacing:-.15cqw;line-height:1.15;margin:1.5cqw 0;color:#ff94d5}
+.final-screen .final-completed{font-size:1.1cqw;color:#c9ff64;margin:0}
+.friends-slot{height:8cqw;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.final-screen .final-friends{font-size:1.5cqw;line-height:1.6;margin:0;color:#f4eedb}
+.final-friends.moving-credits{opacity:0}
+.final-screen .primary{margin:auto;justify-content:center;font-size:1.2cqw;padding:1cqw}
+@media(prefers-reduced-motion:reduce){.final-friends.moving-credits{opacity:1}}

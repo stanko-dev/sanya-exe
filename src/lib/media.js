@@ -1,6 +1,7 @@
 // Vite discovers only real files. Missing optional assets never generate requests.
 import { SoundGate } from './soundGate.js';
-const files = import.meta.glob('/public/media/**/*.{png,jpg,jpeg,mp3,ogg}', { eager: true, query: '?url', import: 'default' });
+import { selectFinalPhotos } from './finalPhotos.js';
+const files = import.meta.glob('/public/media/**/*.{png,jpg,jpeg,mp3,ogg,mp4,mov}', { eager: true, query: '?url', import: 'default' });
 export function mediaExists(path) { return Boolean(path && files[`/public/media/${path}`]); }
 export function mediaUrl(path) { return `${import.meta.env.BASE_URL}media/${path}`; }
 export function queueImage(scene, path) { if (mediaExists(path)) scene.load.image(path, mediaUrl(path)); }
@@ -9,7 +10,9 @@ export function queueAudio(scene, path) {
   // Phaser otherwise infers "ogg" and tests Vorbis support, not Opus support.
   // Explicit type selects its Opus capability flag without renaming the file.
   const url = mediaUrl(path);
-  scene.load.audio(path, path.endsWith('.ogg') ? [{ url, type: 'opus' }, { url, type: 'ogg' }] : url);
+  const source = path.endsWith('.ogg') ? [{ url, type: 'opus' }, { url, type: 'ogg' }]
+    : path.endsWith('.mp4') ? { url, type: 'm4a' } : url;
+  scene.load.audio(path, source);
 }
 const hitGate = new SoundGate(1700);
 export function playHitSound(scene, type) {
@@ -36,4 +39,9 @@ export function music(scene, path) {
   const track = scene.sound.add(path, { loop: true, volume: 0.55 });
   track.play();
   scene.events.once('shutdown', () => { track.stop(); track.destroy(); });
+}
+
+// Build-time Vite manifest: no HTTP directory listing.
+export function finalPhotoPaths() {
+  return selectFinalPhotos(Object.keys(files));
 }

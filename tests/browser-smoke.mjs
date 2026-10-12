@@ -59,9 +59,8 @@ try {
   await poll(() => evaluate(`Boolean(window.sanyaGame?.scene.isActive('Menu') && document.querySelector('.menu-player audio')?.duration > 0)`), 'menu and audio metadata');
   assert.deepEqual(await evaluate(`['lvl1/face_lvl1.jpg','lvl2/face_lvl2.jpg','lvl3/face_lvl3.jpg'].map(k=>sanyaGame.textures.exists(k))`), [true, true, true]);
   assert.deepEqual(await evaluate(`['lvl2/morda.ogg','lvl3/nothanks.ogg'].map(k=>sanyaGame.cache.audio.get(k)?.duration > 0)`), [true, true]);
-  assert.equal(await evaluate(`sanyaGame.cache.audio.exists('lvl1/hit_sound.ogg')`), false);
-  assert.equal(await evaluate(`document.querySelector('audio').paused`), true);
-  await evaluate(`document.querySelector('#music-play').click()`, true);
+  assert.equal(await evaluate(`sanyaGame.cache.audio.get('lvl1/mob_sound1.mp4')?.duration > 0`), true);
+  await evaluate(`(()=>{const enter=document.querySelector('#enter-sanya');if(enter)enter.click();else if(document.querySelector('audio').paused)document.querySelector('#music-play').click()})()`, true);
   await poll(() => evaluate(`!document.querySelector('audio').paused`), 'menu Play');
   await evaluate(`document.querySelector('#volume').value=25;document.querySelector('#volume').dispatchEvent(new Event('input'))`);
   assert.equal(await evaluate(`document.querySelector('audio').volume`), 0.25);

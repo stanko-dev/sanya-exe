@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import './style.css';
+import './reward-minimal.css';
+import './content.css';
 import { BootScene } from './scenes/BootScene.js';
 import { MenuScene } from './scenes/MenuScene.js';
 import { GameScene } from './scenes/GameScene.js';

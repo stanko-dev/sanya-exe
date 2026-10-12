@@ -1,0 +1,43 @@
+.reward-layout.reward-minimal {
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5cqw;
+  padding: 2cqw;
+  background: #0b0e14;
+  backdrop-filter: none;
+}
+.reward-minimal h2 {
+  margin: 0;
+  font-size: 2.8cqw;
+  font-weight: 600;
+  text-align: center;
+}
+.reward-minimal .polaroid { display: none; }
+.reward-minimal .reward-video {
+  order: -1;
+  width: min(65cqw, 100%);
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+.reward-minimal .reward-video video {
+  height: 43cqw;
+  max-height: 70vh;
+  margin: 0;
+}
+.minimal-video > .eyebrow,
+.minimal-video .video-actions,
+.minimal-video .video-status { display: none; }
+.reward-next {
+  position: absolute;
+  right: 3cqw;
+  bottom: 3cqw;
+  width: 4cqw;
+  height: 4cqw;
+  border: 1px solid #6e8358;
+  border-radius: 50%;
+  background: #18251a;
+  color: #c9ff64;
+  font-size: 2.5cqw;
+}
+.reward-next:hover { background: #2c4223; }

@@ -6,16 +6,17 @@ import { createServer } from 'vite';
 import { enemyTypes } from '../src/config/levels.js';
 
 test('Real optional media discovery, Phaser Opus routing and menu player bindings', async t => {
-  const server = await createServer({ server: { middlewareMode: true }, appType: 'custom' });
+  const server = await createServer({ server: { middlewareMode: true, ws: false }, appType: 'custom' });
   try {
     const media = await server.ssrLoadModule('/src/lib/media.js');
     await t.test('Three JPGs discovered; missing future assets are skipped; Opus keeps its real .ogg URL', () => {
       const images = [], audio = [];
       const scene = { load: { image: (...args) => images.push(args), audio: (...args) => audio.push(args) } };
       for (const type of Object.values(enemyTypes)) { media.queueImage(scene, type.face); media.queueAudio(scene, type.inputSound); }
-      assert.equal(images.length, 3); assert.equal(audio.length, 2);
+      assert.equal(images.length, 3); assert.equal(audio.length, 3);
       assert.ok(images.every(([key, url]) => key.endsWith('.jpg') && url === `/sanya-exe/media/${key}`));
-      assert.ok(audio.every(([key, urls]) => urls[0].type === 'opus' && urls[0].url === `/sanya-exe/media/${key}`));
+      assert.ok(audio.filter(([key]) => key.endsWith('.ogg')).every(([key, urls]) => urls[0].type === 'opus' && urls[0].url === `/sanya-exe/media/${key}`));
+      assert.deepEqual(audio.find(([key]) => key.endsWith('.mp4'))[1], { url: '/sanya-exe/media/lvl1/mob_sound1.mp4', type: 'm4a' });
       assert.equal(media.mediaExists('lvl1/hit_sound.ogg'), false);
       assert.equal(media.mediaExists('traps/trap1/photo.jpg'), false);
       media.queueImage(scene, undefined); media.queueAudio(scene, undefined);
@@ -29,12 +30,14 @@ test('Real optional media discovery, Phaser Opus routing and menu player binding
         sounds.push(sound); return sound;
       } } };
       const type = id => ({ id, media: enemyTypes[id] });
-      assert.equal(media.playHitSound(scene, type(1)), false);
+      assert.equal(media.playHitSound(scene, { id: 99, media: { inputSound: 'lvl1/future-missing.ogg' } }), false);
       assert.equal(sounds.length, 0);
       assert.equal(media.playHitSound(scene, type(2)), true);
       assert.equal(media.playHitSound(scene, type(2)), false);
       assert.equal(media.playHitSound(scene, type(3)), true);
-      assert.equal(sounds.length, 2);
+      assert.equal(media.playHitSound(scene, type(1)), true);
+      assert.equal(media.playHitSound(scene, type(1)), false);
+      assert.equal(sounds.length, 3);
       sounds[0].emit('complete'); assert.ok(sounds[0].destroyed);
       assert.equal(media.playHitSound(scene, type(2)), false, 'Completion alone does not bypass cooldown');
       events.emit('shutdown'); assert.ok(sounds.every(sound => sound.destroyed));
@@ -62,7 +65,7 @@ test('Real optional media discovery, Phaser Opus routing and menu player binding
       try {
         const sound = new EventEmitter(); sound.volume = 0.65;
         const scene = { sound, events: new EventEmitter() };
-        const audio = attachMenuPlayer(scene, 'menu/soundtrack.mp3');
+        const audio = attachMenuPlayer(scene, 'menu/soundtrack.mp3', { autoplay: false });
         assert.ok(audio.paused); assert.equal(audio.playCount, 0); assert.equal(audio.volume, 0.65);
         assert.equal(panel.nodes['.track-title'].textContent, trackTitle);
         audio.duration = 124.58; audio.dispatchEvent(new Event('loadedmetadata'));

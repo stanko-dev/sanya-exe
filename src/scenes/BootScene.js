@@ -1,11 +1,14 @@
 import Phaser from 'phaser';
+import { memeContent } from '../config/memes.js';
 import { levels, menuMedia, enemyTypes } from '../config/levels.js';
-import { queueImage, queueAudio } from '../lib/media.js';
+import { queueImage, queueAudio, finalPhotoPaths } from '../lib/media.js';
 import { createTextures } from '../lib/art.js';
 
 export class BootScene extends Phaser.Scene {
   constructor() { super('Boot'); }
   preload() {
+    finalPhotoPaths().forEach(path => queueImage(this, path));
+    queueAudio(this, memeContent.final.soundtrack);
     queueImage(this, menuMedia.background); queueAudio(this, menuMedia.soundtrack);
     Object.values(enemyTypes).forEach(type => { queueImage(this, type.face); queueAudio(this, type.inputSound); });
     levels.forEach(level => {
