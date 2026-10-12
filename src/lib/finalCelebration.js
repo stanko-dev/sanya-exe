@@ -21,8 +21,10 @@ export function attachFinalCelebration(scene) {
       const image = document.createElement('img'); image.src = mediaUrl(photoQueue[photoIndex++]); image.alt = '';
       image.onerror = () => { card.textContent = memeCombination(); }; card.append(image);
     } else card.textContent = memeCombination();
-    const x = 2 + Math.random() * 83, angle = -35 + Math.random() * 70;
-    const bottom = Math.min(18, Math.floor(cards.length / 9) * 2.2) + Math.random() * 3;
+    // Alternate side lanes so the central portrait never hides the falling photos.
+    const x = (cards.length % 2 === 0 ? 2 : 76) + Math.random() * 10;
+    const angle = -25 + Math.random() * 50;
+    const bottom = Math.min(20, Math.floor(cards.length / 4) * 3) + Math.random() * 2;
     card.style.left = `${x}%`; card.style.bottom = `${bottom}%`;
     card.style.transform = `rotate(${angle}deg)`;
     layer.append(card); cards.push(card);
