@@ -15,7 +15,7 @@ export class RewardScene extends Phaser.Scene {
       ? this.scene.start('Game', { levelIndex: this.result.levelIndex + 1 })
       : this.scene.start('End', { won: true });
     const message = escapeHtml(memeContent.rewards[this.result.levelIndex]);
-    if (level.id === 1 || level.id === 2) {
+    if ([1, 2, 3].includes(level.id)) {
       this.cameras.main.setBackgroundColor('#0b0e14');
       mount(this, `<div class="reward-layout reward-minimal"><div class="polaroid"><div class="photo-placeholder"><strong>ВОЗНЯ</strong></div></div><h2>${message}</h2><button id="next" class="reward-next" aria-label="${memeContent.ui.next}" title="${memeContent.ui.next}">→</button></div>`);
       const player = attachRewardVideo(this, level, { minimal: true });

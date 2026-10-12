@@ -35,6 +35,7 @@ test('Final manifest accepts all photo names and excludes the central main image
 test('Rewards keep exact content and future level media configuration', () => {
   assert.equal(memeContent.rewards[0], 'пр з дн. будь здоров. миронівна. (від ілюхи)');
   assert.equal(memeContent.rewards[1], 'з днюхою ура, шоб хуй стояв і серце билось. бичий цепень vs гангерена (від стаса)');
+  assert.equal(memeContent.rewards[2], 'Саня, щоб твоя спермограма та аналізи ніколи не підводили');
   assert.deepEqual(levels.map(level => level.rewardTitle), memeContent.rewards);
   for (const level of levels) {
     assert.ok(level.rewardVideos.some(video => video.path === `lvl${level.id}/win${level.id}.mp4`));

@@ -73,6 +73,10 @@ export const levels = [
     traps: [trap('trap6', 160, 350), trap('trap7', 1120, 350), trap('trap8', 750, 550), trap('trap9', 530, 550)],
     rewardTitle: memeContent.rewards[2], wish: "",
     rewardPhoto: 'lvl3/win3.jpg', soundtrack: 'lvl3/soundtrack.mp3',
-    rewardVideos: [{ path: 'lvl3/win3.mp4', type: 'video/mp4' }],
+    rewardVideos: [
+      { path: 'lvl3/win3.mp4', type: 'video/mp4' },
+      // Original .MOV inspected: mp42 container, H.264 + AAC; no format renaming.
+      { path: 'lvl3/win3.mov', type: 'video/mp4' },
+    ],
   },
 ].map(level => ({ ...level, enemies: balance(level.enemies, level.difficulty.speedMultiplier, level.difficulty.damageMultiplier) }));
