@@ -20,7 +20,7 @@ function send(method, params = {}) {
   const id = ++serial;
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => { pending.delete(id); reject(new Error(`CDP timeout: ${method}`)); }, 15000);
-    pending.set(id, { resolve: result => { clearTimeout(timer); resolve(result); }, reject });
+    pending.set(id, { resolve: result => { clearTimeout(timer); resolve(result); }, reject: error => { clearTimeout(timer); reject(error); } });
     socket.send(JSON.stringify({ id, method, params }));
   });
 }
@@ -31,13 +31,20 @@ async function evaluate(expression, userGesture = false) {
 }
 try {
   await poll(async () => (await fetch('http://127.0.0.1:5178/sanya-exe/')).ok, 'Vite');
-  chrome = spawn(chromePath, ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--enable-unsafe-swiftshader', '--remote-debugging-port=9228', `--user-data-dir=${resolve('test-results/chrome-profile')}`, 'about:blank'], { windowsHide: true, stdio: 'ignore' });
+  chrome = spawn(chromePath, ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--disable-gpu', '--disable-software-rasterizer', '--remote-debugging-port=9228', `--user-data-dir=${resolve('test-results/chrome-profile')}`, 'about:blank'], { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'] });
+  let chromeLog = '';
+  chrome.stderr.on('data', chunk => { chromeLog = (chromeLog + chunk).slice(-2000); if (process.env.SMOKE_DEBUG) process.stderr.write(chunk); });
+  chrome.once('exit', code => {
+    for (const item of pending.values()) item.reject(new Error(`Chrome exited (${code}): ${chromeLog}`));
+    pending.clear();
+  });
   chrome.on('error', error => errors.push(error.message));
   const targets = await poll(async () => (await (await fetch('http://127.0.0.1:9228/json')).json()).find(t => t.type === 'page'), 'Chrome');
   socket = new WebSocket(targets.webSocketDebuggerUrl);
   await new Promise((r, j) => { socket.addEventListener('open', r, { once: true }); socket.addEventListener('error', j, { once: true }); });
   socket.addEventListener('message', event => {
     const data = JSON.parse(event.data);
+    if (process.env.SMOKE_DEBUG) console.log('CDP:', data.id || data.method);
     if (data.id && pending.has(data.id)) {
       const item = pending.get(data.id); pending.delete(data.id);
       if (data.error) item.reject(new Error(data.error.message)); else item.resolve(data.result);
@@ -89,6 +96,12 @@ try {
   assert.equal(await evaluate(`!document.querySelector('.trap-defeat')`), true);
   await evaluate(`document.querySelector('#restart').click()`, true);
   await poll(() => evaluate(`sanyaGame.scene.isActive('Game') && sanyaGame.scene.getScene('Game').hp===100`), 'restart');
+  assert.equal(await evaluate(`sanyaGame.sound.sounds.filter(s=>s.key.endsWith('.ogg')&&s.isPlaying).length`), 0);
+  await evaluate(`(()=>{const s=sanyaGame.scene.getScene('Game');s.physics.pause();s.combatTime=10000;s.takeDamage(0,{id:'smoke-personal',type:'instant_death',photo:'lvl1/face_lvl1.jpg',sound:'lvl2/morda.ogg',message:'Перевірка персональної пастки'})})()`);
+  await poll(() => evaluate(`sanyaGame.scene.isActive('End') && Boolean(document.querySelector('.trap-photo'))`), 'personal instant-death screen');
+  assert.equal(await evaluate(`document.querySelector('.trap-defeat p').textContent`), 'Перевірка персональної пастки');
+  await evaluate(`document.querySelector('#restart').click()`, true);
+  await poll(() => evaluate(`sanyaGame.scene.isActive('Game') && sanyaGame.scene.getScene('Game').hp===100`), 'personal trap Restart');
   assert.equal(await evaluate(`sanyaGame.sound.sounds.filter(s=>s.key.endsWith('.ogg')&&s.isPlaying).length`), 0);
   assert.deepEqual(responses, []); assert.deepEqual(errors, []);
   console.log('Browser smoke passed: JPG heads, Opus decode/playback, audio cooldown, menu controls/cleanup, counts/hitboxes, traps, defeat fallback and Restart.');
